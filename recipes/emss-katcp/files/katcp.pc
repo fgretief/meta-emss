@@ -1,0 +1,9 @@
+prefix=/usr/
+includedir=${prefix}/include
+libdir=${prefix}
+
+Name=libkatcp
+Description=SKA library
+Version=0.1
+Cflags: -I${includedir}
+Libs: -L{libdir} -llibkatcp

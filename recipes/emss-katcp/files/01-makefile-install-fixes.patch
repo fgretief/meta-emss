@@ -1,0 +1,146 @@
+diff --git a/Makefile.inc b/Makefile.inc
+index f3ee02f..131e9b0 100644
+--- a/Makefile.inc
++++ b/Makefile.inc
+@@ -1,5 +1,5 @@
+ # install target 
+-PREFIX=/usr/local
++PREFIX ?= /usr/local
+ 
+ # where to find the KATCP library (change this in case katcp isn't included locally)
+ KATCP ?= katcp
+@@ -16,12 +16,12 @@ CFLAGS += -ggdb
+ 
+ GITVER = $(shell git describe  --tags --dirty  2> /dev/null || echo unknown)
+ 
+-CC = $(CROSS_COMPILE)gcc
++CC ?= $(CROSS_COMPILE)gcc
+ LOCALCC = gcc
+ 
+ INSTALL = install
+ RM = rm -f
+-AR = ar
++AR ?= ar
+ ECHO = echo
+ 
+ .PHONY: all clean install
+diff --git a/bulkread/Makefile b/bulkread/Makefile
+index 5dfa71a..2791850 100644
+--- a/bulkread/Makefile
++++ b/bulkread/Makefile
+@@ -16,7 +16,7 @@ $(EXE): $(OBJ) $(KATCP)/libkatcp.a
+ 	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(LIB)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+ 
+ %.o: %.c $(wildcard *.h)
+ 	$(CC) $(CFLAGS) -c $< $(INC)
+diff --git a/cmd/Makefile b/cmd/Makefile
+index 9901a74..f170817 100644
+--- a/cmd/Makefile
++++ b/cmd/Makefile
+@@ -22,4 +22,4 @@ clean:
+ 	$(RM) $(OBJ) core $(EXE)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+diff --git a/fmon/Makefile b/fmon/Makefile
+index 384f8dc..93a5b7f 100644
+--- a/fmon/Makefile
++++ b/fmon/Makefile
+@@ -22,4 +22,4 @@ clean:
+ 	$(RM) $(OBJ) core $(EXE)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+diff --git a/katcp/Makefile b/katcp/Makefile
+index 4c55534..0a8fe79 100644
+--- a/katcp/Makefile
++++ b/katcp/Makefile
+@@ -68,9 +68,9 @@ clean:
+ 	$(RM) $(LIB) $(SHARED) *.o core
+ 
+ install: all
+-	$(INSTALL) -d $(PREFIX)/include $(prefix)/lib
+-	$(INSTALL) $(LIB) $(PREFIX)/lib
+-	$(INSTALL) $(HDR) $(PREFIX)/include
++	$(INSTALL) -d $(PREFIX)/include $(PREFIX)/lib
++	$(INSTALL) -m 0664 $(HDR) $(PREFIX)/include
++	$(INSTALL) -m 0664 $(LIB) $(PREFIX)/lib
+ 
+ # FORCE:
+ # dispatch.o: FORCE
+diff --git a/kcs/Makefile b/kcs/Makefile
+index 86640d9..af09647 100644
+--- a/kcs/Makefile
++++ b/kcs/Makefile
+@@ -23,7 +23,7 @@ clean:
+ 	$(CC) $(CFLAGS) -c $< -o $@ $(INC)
+ 
+ install: all
+-	$(INSTALL) $(SERVER) $(PREFIX)/sbin
++	$(INSTALL) -D -m 0755 $(SERVER) $(PREFIX)/sbin/$(SERVER)
+ 
+ test-parser: parser.c 
+ 	$(CC) $(CFLAGS) -DSTANDALONE -o $@ $^ -I../katcp
+diff --git a/log/Makefile b/log/Makefile
+index a4f1fc9..0329446 100644
+--- a/log/Makefile
++++ b/log/Makefile
+@@ -16,7 +16,7 @@ $(EXE): $(OBJ)
+ 	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(LIB)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+ 
+ %.o: %.c $(wildcard *.h)
+ 	$(CC) $(CFLAGS) -c $< $(INC)
+diff --git a/misc/Makefile b/misc/Makefile
+index 43b8424..c5d07f3 100644
+--- a/misc/Makefile
++++ b/misc/Makefile
+@@ -19,5 +19,6 @@ install: all
+ 	$(INSTALL) -d $(CMDSDIR)
+ 	$(INSTALL) $(CMDS) $(CMDSDIR)/$(CMDS)
+ 
++install_init.d:
+ 	$(INSTALL) -d $(INITDIR)
+ 	$(INSTALL) $(INITSRC) $(INITDIR)/$(INITDST)
+diff --git a/sq/Makefile b/sq/Makefile
+index cc46f89..64881ca 100644
+--- a/sq/Makefile
++++ b/sq/Makefile
+@@ -16,7 +16,7 @@ $(EXE): $(OBJ)
+ 	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(LIB)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+ 
+ %.o: %.c $(wildcard *.h)
+ 	$(CC) $(CFLAGS) -c $< $(INC)
+diff --git a/tmon/Makefile b/tmon/Makefile
+index b015272..cdf34ae 100644
+--- a/tmon/Makefile
++++ b/tmon/Makefile
+@@ -24,4 +24,4 @@ clean:
+ 	$(CC) $(CFLAGS) -c $< -o $@ $(INC)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/sbin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/sbin/$(EXE)
+diff --git a/wops/Makefile b/wops/Makefile
+index 8bfcaa2..5e2aac9 100644
+--- a/wops/Makefile
++++ b/wops/Makefile
+@@ -22,4 +22,4 @@ clean:
+ 	$(RM) $(OBJ) core $(EXE)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
