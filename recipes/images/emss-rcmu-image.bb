@@ -6,7 +6,8 @@ PR = "r1"
 ALLOW_EMPTY = "1"
 
 IMAGE_LINGUAS = ""
-IMAGE_INSTALL = " \
+IMAGE_INSTALL += " \
+    ntp \
 "
 
 export IMAGE_BASENAME="rcmu-image"
