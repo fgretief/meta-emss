@@ -17,6 +17,8 @@ SRC_URI = "\
 "
 SRC_URI_append_stamp9g20evb = " \
     file://at91-adc.110419.patch \
+    file://ds1682.patch \
+    file://emss-rcmu-board.patch \
 "
 S = "${WORKDIR}/linux-${PV}"
 

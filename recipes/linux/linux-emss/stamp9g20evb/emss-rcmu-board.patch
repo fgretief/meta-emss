@@ -1,0 +1,250 @@
+--- emss-kernel.orig/arch/arm/mach-at91/Kconfig
++++ emss-kernel/arch/arm/mach-at91/Kconfig
+@@ -368,6 +368,13 @@
+ 	  evaluation board.
+ 	  <http://www.taskit.de/en/>
+ 
++config MACH_EMSS_RCMU
++	bool "EMSS Receiver Control and Monitoring Unit (RCMU)"
++	help
++	  Select this if you ar using the EMSS Receiver Control and
++	  Monitoring Unit (RCMU) of the SKA antennas.
++	  <http://www.emss.co.za/>
++
+ config MACH_PCONTROL_G20
+ 	bool "PControl G20 CPU module"
+ 	help
+--- emss-kernel.orig/arch/arm/tools/mach-types
++++ emss-kernel/arch/arm/tools/mach-types
+@@ -327,6 +327,7 @@
+ rd88f5181l_ge		MACH_RD88F5181L_GE	RD88F5181L_GE		1812
+ rd88f5181l_fxo		MACH_RD88F5181L_FXO	RD88F5181L_FXO		1818
+ stamp9g20		MACH_STAMP9G20		STAMP9G20		1824
++emss_rcmu		MACH_EMSS_RCMU		EMSS_RCMU		1825
+ smdkc100		MACH_SMDKC100		SMDKC100		1826
+ tavorevb		MACH_TAVOREVB		TAVOREVB		1827
+ saar			MACH_SAAR		SAAR			1828
+Index: emss-kernel/arch/arm/mach-at91/board-stamp9g20.c
+===================================================================
+--- emss-kernel.orig/arch/arm/mach-at91/board-stamp9g20.c
++++ emss-kernel/arch/arm/mach-at91/board-stamp9g20.c
+@@ -27,10 +27,61 @@
+ 
+ #include <mach/board.h>
+ #include <mach/at91sam9_smc.h>
++#include <mach/at91_pio.h>
+ 
+ #include "sam9_smc.h"
+ #include "generic.h"
++#include <mach/at91_pmc.h>
+ 
++static void __init WaitFor_PMC_SR(unsigned ReadyFlag)
++{
++	unsigned pmc_sr;
++	pmc_sr = at91_sys_read(AT91_PMC_SR);
++
++	printk("[XXX] Waiting for 0x%x in PMC_SR: 0x%x\n",ReadyFlag, pmc_sr);
++	while (!(pmc_sr & ReadyFlag)){ // wait for MCK to be ready
++		pmc_sr = at91_sys_read(AT91_PMC_SR);
++	}
++	printk("[XXX] PMC_SR is ready. PMC_SR: 0x%x\n", pmc_sr);
++}
++
++static void __init slow_down_clock(void)
++{
++	unsigned mckr = 0;
++
++	// change the clock source to PLLB
++	mckr = at91_sys_read(AT91_PMC_MCKR);
++	printk("[XXX] Read MCKR: 0x%x\n", mckr);
++	mckr &= ~(AT91_PMC_CSS);     // clear CSS
++	mckr |= (AT91_PMC_CSS_PLLB); // | AT91RM9200_PMC_MDIV_2); // (set CSS bits to PLLB Clock) and (MCK prescaler / 2)
++	at91_sys_write(AT91_PMC_MCKR, mckr);
++	printk("[XXX] Modified MCKR to set CSS to PLLB: 0x%x\n", mckr);
++	WaitFor_PMC_SR(AT91_PMC_MCKRDY); //Wait for MCK ready
++	WaitFor_PMC_SR(AT91_PMC_LOCKB); //Wait for LOCKB ready
++
++	// change Master Clock with Prescaler (MCK/2)
++	mckr = at91_sys_read(AT91_PMC_MCKR);
++	printk("[XXX] Read Master Clock Register(MCKR): 0x%x\n", mckr);
++	mckr &= ~(AT91_PMC_MDIV);     // clear MDIV bits to zero
++	mckr |= (AT91RM9200_PMC_MDIV_2); // set (MCK prescaler / 2)
++	at91_sys_write(AT91_PMC_MCKR, mckr);
++	printk("[XXX] Modified MCKR with MDIV_2: 0x%x\n", mckr);
++	WaitFor_PMC_SR(AT91_PMC_MCKRDY); //Wait for MCK ready
++}
++
++static void __init disable_plla(void)
++{
++	unsigned pllar = 0;
++
++	// disable the PLLA clock source
++	pllar = at91_sys_read(AT91_CKGR_PLLAR);
++	printk("[XXX] Original PLLAR: %x\n", pllar);
++	pllar &= ~(AT91_PMC_MUL);     // clear MULA & DIVA bits to zero
++	at91_sys_write(AT91_CKGR_PLLAR, pllar);
++	printk("[XXX] Modified PLLAR: %x\n", pllar);
++	// wait for PLLA to lock on to frequency: LOCKA (disabled)
++//	WaitFor_PMC_SR(AT91_PMC_LOCKA); //Wait for LOCKA ready
++}
+ 
+ void __init stamp9g20_init_early(void)
+ {
+@@ -46,6 +97,11 @@
+ 
+ static void __init stamp9g20evb_init_early(void)
+ {
++	printk("[XXX] STARTED stamp9g20evb_board\n");
++	/* Enable slow clock on PLLB, Disable the PLLA */
++//	slow_down_clock();
++//	disable_plla();
++
+ 	stamp9g20_init_early();
+ 
+ 	/* USART0 on ttyS1. (Rx, Tx, CTS, RTS, DTR, DSR, DCD, RI) */
+@@ -291,11 +347,99 @@
+ 	/* Ethernet */
+ 	at91_add_device_eth(&macb_data);
+ 	/* I2C */
+-	at91_add_device_i2c(NULL, 0);
++	at91_add_device_i2c(NULL, 0); // can not enable DS1682 because of ethernet preference pins.
+ 	/* LEDs */
+ 	at91_gpio_leds(stamp9g20evb_leds, ARRAY_SIZE(stamp9g20evb_leds));
+ }
+ 
++static void __init emss_rcmu_init_early(void)
++{
++	printk("[XX] STARTED EMSS_RCMU_board \n");
++	/* Enable slow clock on PLLB, Disable the PLLA */
++	slow_down_clock();
++	disable_plla();
++
++	stamp9g20_init_early();
++
++	/* USART0 on ttyS1. (Rx, Tx, CTS, RTS, DTR, DSR, DCD, RI) */
++	at91_register_uart(AT91SAM9260_ID_US0, 1, ATMEL_UART_CTS | ATMEL_UART_RTS
++						| ATMEL_UART_DTR | ATMEL_UART_DSR
++						| ATMEL_UART_DCD | ATMEL_UART_RI);
++}
++
++/* MACB Ethernet device (with MII) */
++static struct at91_eth_data __initdata macb_rcmu = {
++	.phy_irq_pin	= AT91_PIN_PA28,
++	.is_rmii		= 0,
++};
++
++/* I2C bus devices */
++static struct i2c_board_info __initdata rcmu_i2c_devices[] = {
++    {   // Elapsed Time Counter
++	    I2C_BOARD_INFO("ds1682", 0x6B),
++    },
++};
++
++static void __init emss_rcmu_board_init(void)
++{
++	/* Initialize processor: 18.432 MHz crystal */
++//	at91sam9260_initialize(18432000);
++
++	stamp9g20_board_init();
++	/* Ethernet */
++	at91_add_device_eth(&macb_rcmu);
++	/* I2C */
++	at91_add_device_i2c(rcmu_i2c_devices, ARRAY_SIZE(rcmu_i2c_devices));
++}
++
++static void __init emss_rcmu_or_stamp9g20_init_early(void)
++{
++	// Perform early check for the EMSS RCMU board
++
++	unsigned int val, mask;
++	u32 addr = AT91_PIOA + PIO_PDSR;
++	val = at91_sys_read(addr);
++	mask = 1 << 23; // TWD(PA23) pulled down on emss_rcmu_board
++	if ((val & mask) == 0) {
++	    __machine_arch_type = MACH_TYPE_STAMP9G20;
++	} else {
++		__machine_arch_type = MACH_TYPE_EMSS_RCMU;
++	}
++
++	if (machine_is_emss_rcmu()){
++		printk("[Xx] emss_rcmu early detection\n");
++		emss_rcmu_init_early();
++	} else {
++		printk("[Xx] stamp9g20evb early detection\n");
++		stamp9g20evb_init_early();
++	}
++}
++
++static void __init emss_rcmu_or_stamp9g20evb_board_init(void)
++{
++	// Perform check for the EMSS RCMU board
++	
++	unsigned int val, mask;
++	u32 addr = AT91_PIOA + PIO_PDSR;
++
++	at91_set_gpio_output(AT91_PIN_PC9,1);
++	
++	val = at91_sys_read(addr);
++	mask = 1 << 6; // MCCDA0(PA06) pulled down on emss_rcmu_board
++
++	if ((val & mask) == 0) {
++	    __machine_arch_type = MACH_TYPE_EMSS_RCMU;
++	}
++
++	if (machine_is_emss_rcmu()){
++		printk("[XX] emss_rcmu_board detected\n");
++		emss_rcmu_board_init();
++	} else {
++		printk("[XX] stamp9g20evb_board detected\n");
++		stamp9g20evb_board_init();
++	}
++}
++
+ MACHINE_START(PORTUXG20, "taskit PortuxG20")
+ 	/* Maintainer: taskit GmbH */
+ 	.timer		= &at91sam926x_timer,
+@@ -311,5 +455,14 @@
+ 	.map_io		= at91sam9260_map_io,
+ 	.init_early	= stamp9g20evb_init_early,
+ 	.init_irq	= init_irq,
+-	.init_machine	= stamp9g20evb_board_init,
++	.init_machine	= emss_rcmu_or_stamp9g20evb_board_init, //stamp9g20evb_board_init,
++MACHINE_END
++
++MACHINE_START(EMSS_RCMU, "EMSS Receiver Control and Montioring Unit (RCMU)")
++	/* Maintainer: EMSS Antennas (Pty) Ltd */
++	.timer		= &at91sam926x_timer,
++	.map_io		= at91sam9260_map_io,
++	.init_early	= emss_rcmu_init_early,
++	.init_irq	= init_irq,
++	.init_machine	= emss_rcmu_or_stamp9g20evb_board_init, //emss_rcmu_board_init,
+ MACHINE_END
+--- emss-kernel.orig/arch/arm/mach-at91/at91sam9260_devices.c
++++ emss-kernel/arch/arm/mach-at91/at91sam9260_devices.c
+@@ -23,8 +23,9 @@
+ #include <mach/at91sam9260_matrix.h>
+ #include <mach/at91sam9_smc.h>
+ 
+-#include "generic.h"
++#include <asm/mach-types.h>
+ 
++#include "generic.h"
+ 
+ /* --------------------------------------------------------------------
+  *  USB Host
+@@ -183,8 +184,13 @@
+ 		at91_set_B_periph(AT91_PIN_PA25, 0);	/* ERX2 */
+ 		at91_set_B_periph(AT91_PIN_PA26, 0);	/* ERX3 */
+ 		at91_set_B_periph(AT91_PIN_PA27, 0);	/* ERXCK */
+-		at91_set_B_periph(AT91_PIN_PA23, 0);	/* ETX2 */
+-		at91_set_B_periph(AT91_PIN_PA24, 0);	/* ETX3 */
++		if (machine_is_emss_rcmu()) {
++		    at91_set_B_periph(AT91_PIN_PA10, 0);	/* ETX2 */
++		    at91_set_B_periph(AT91_PIN_PA11, 0);	/* ETX3 */
++		} else {
++		    at91_set_B_periph(AT91_PIN_PA23, 0);	/* ETX2 */
++		    at91_set_B_periph(AT91_PIN_PA24, 0);	/* ETX3 */
++		}
+ 		at91_set_B_periph(AT91_PIN_PA22, 0);	/* ETXER */
+ 	}
+ 
