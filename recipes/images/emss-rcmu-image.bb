@@ -7,6 +7,7 @@ ALLOW_EMPTY = "1"
 
 IMAGE_LINGUAS = ""
 IMAGE_INSTALL += " \
+    katcp \
     ntp \
 "
 

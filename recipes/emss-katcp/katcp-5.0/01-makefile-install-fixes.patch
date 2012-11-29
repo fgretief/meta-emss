@@ -1,0 +1,56 @@
+--- katcp-pruned-2012-11.orig/Makefile.inc
++++ katcp-pruned-2012-11/Makefile.inc
+@@ -1,5 +1,5 @@
+ # install location
+-PREFIX=/usr/local
++PREFIX ?= /usr/local
+ 
+ # where to find the KATCP library (change this in case katcp isn't included locally)
+ KATCP ?= katcp
+@@ -48,13 +48,13 @@
+ CFLAGS += -ggdb
+ 
+ # what compiler to use 
+-CC = $(CROSS_COMPILE)gcc
++CC ?= $(CROSS_COMPILE)gcc
+ 
+ GITVER = $(shell git describe  --tags --dirty  2> /dev/null || echo unknown)
+ 
+ INSTALL = install
+ RM = rm -f
+-AR = ar
++AR ?= $(CROSS_COMPILE)ar
+ ECHO = echo
+ 
+ .PHONY: all clean install
+--- katcp-pruned-2012-11.orig/cmd/Makefile
++++ katcp-pruned-2012-11/cmd/Makefile
+@@ -24,4 +24,4 @@
+ 	$(RM) $(OBJ) core $(EXE)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+--- katcp-pruned-2012-11.orig/katcp/Makefile
++++ katcp-pruned-2012-11/katcp/Makefile
+@@ -40,6 +40,6 @@
+ 	$(RM) $(LIB) $(SHARED) *.o core
+ 
+ install: all
+-	$(INSTALL) -d $(PREFIX)/include $(prefix)/lib
+-	$(INSTALL) $(LIB) $(PREFIX)/lib
+-	$(INSTALL) $(HDR) $(PREFIX)/include
++	$(INSTALL) -d $(PREFIX)/include $(PREFIX)/lib
++	$(INSTALL) -m 0664 $(LIB) $(PREFIX)/lib
++	$(INSTALL) -m 0664 $(HDR) $(PREFIX)/include
+--- katcp-pruned-2012-11.orig/log/Makefile
++++ katcp-pruned-2012-11/log/Makefile
+@@ -16,7 +16,7 @@
+ 	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(LIB)
+ 
+ install: all
+-	$(INSTALL) $(EXE) $(PREFIX)/bin
++	$(INSTALL) -D -m 0755 $(EXE) $(PREFIX)/bin/$(EXE)
+ 
+ %.o: %.c $(wildcard *.h)
+ 	$(CC) $(CFLAGS) -c $< $(INC)
