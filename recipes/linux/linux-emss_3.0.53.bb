@@ -3,7 +3,7 @@ SECTION = "kernel"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
-PR="r1"
+PR="r3"
 
 KERNEL_IMAGETYPE = "uImage"
 
@@ -22,5 +22,5 @@ SRC_URI_append_stamp9g20evb = " \
 "
 S = "${WORKDIR}/linux-${PV}"
 
-SRC_URI[md5sum] = "67ae0ca4e87fb22cecfce94cb90eaee9"
-SRC_URI[sha256sum] = "7a6bee1fd68fd89bc78b26d22c5ecb8723340e787a403ddb47c98b6f6d7f6eec"
+SRC_URI[md5sum] = "0bb97ed099986b46dc513c3178e891b3"
+SRC_URI[sha256sum] = "b9a9dd61c111d96e6899bcff80d9bf1568acd5165a04f134f9c01f237eed2287"
