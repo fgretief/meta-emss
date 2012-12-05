@@ -19,17 +19,22 @@ SRC_URI = " \
 	svn://tokyo.emss.co.za/repositories/Antennas/Projects/MK/Software;module=RSC;protocol=https \
 	file://init \
 	file://default \
+	file://fix-makefile-for-qpc.patch;maxrev=440 \
 "
 S = "${WORKDIR}/RSC"
+
+PARALLEL_MAKE = ""
 
 do_configure() {
     :
 }
 
-do_install() {
-	install -d ${D}/home/rsc/main
-	install -D -m 0755 ${S}/rcmu ${D}/home/rsc/main/RSC
+do_compile() {
+	oe_runmake -C qpc/ports/arm/linux/gnu all CONF=rel LIB=${AR}
+	oe_runmake all CONF=rel
+}
 
+do_install() {
 	install -D -m 0755 ${S}/rcmu ${D}${sbindir}/rsc
 	install -D -m 0755 ${WORKDIR}/init ${D}${sysconfdir}/init.d/${INITSCRIPT_NAME}
 	install -D -m 0644 ${WORKDIR}/default ${D}${sysconfdir}/default/${INITSCRIPT_NAME}

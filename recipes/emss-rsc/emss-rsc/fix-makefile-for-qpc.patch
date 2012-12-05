@@ -1,0 +1,45 @@
+--- a/Makefile
++++ b/Makefile
+@@ -1,3 +1,5 @@
++CONF ?= dbg
++
+ SRCS = \
+     main.c \
+     sensors.c \
+@@ -5,16 +7,19 @@
+     queues.c \
+     sampler_thread.c \
+     keyboard_intercept.c \
+-    cmu_protocol_thread.c
++    cmu_protocol_thread.c \
++    qm_code/RCMU_SM.c \
++    qm_code/SM_main.c \
++    qm_code/bsp.c
+ OBJS = $(SRCS:.c=.o)
+ 
+ all: rcmu
+ 
+ rcmu: $(OBJS)
+-	$(CC) $(LDFLAGS) $^ -o $@ -lkatcp -lm -lpthread
++	$(CC) $(LDFLAGS) $^ -o $@ -L qpc/ports/arm/linux/gnu/$(CONF) -lqf -lqep -lkatcp -lm -lpthread
+ 
+ .c.o:
+-	$(CC) $(CFLAGS) -c -Iinclude $< -o $@
++	$(CC) $(CFLAGS) -c -Iinclude -Iqpc/include -Iqpc/ports/arm/linux/gnu $< -o $@
+ 
+ install: rcmu
+ 	install -D -m 0755 $< $(PREFIX)/usr/sbin/rcmu
+--- a/qpc/ports/arm/linux/gnu/Makefile
++++ b/qpc/ports/arm/linux/gnu/Makefile
+@@ -53,8 +53,9 @@
+ # NOTE: this Makefile assumes that the GNU compiler directory is added
+ # to the PATH variable.
+ #
+-CC  = arm-none-linux-gnueabi-gcc
+-LIB = arm-none-linux-gnueabi-ar
++CROSS_COMPILE ?= arm-none-linux-gnueabi-
++CC  ?= $(CROSS_COMPILE)gcc
++LIB ?= $(CROSS_COMPILE)ar
+ 
+ QPC        = ../../../..
+ QP_INCDIR  = $(QPC)/include
