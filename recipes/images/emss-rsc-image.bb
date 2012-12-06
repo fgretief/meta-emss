@@ -1,7 +1,9 @@
 LICENSE="MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 
-PR = "r3"
+PR = "r4"
+
+CONMANPKGS = ""
 
 require recipes-images/angstrom/console-base-image.bb
 
@@ -10,6 +12,7 @@ IMAGE_FEATURES += "ssh-server-dropbear"
 IMAGE_LINGUAS = ""
 IMAGE_INSTALL += " \
     emss-rsc \
+    emss-rsc-systemd \
     katcp \
     ntpdate \
     ntp \
