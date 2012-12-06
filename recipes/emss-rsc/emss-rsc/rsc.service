@@ -1,0 +1,13 @@
+[Unit]
+Description=EMSS Remote System Controller (RSC) service
+After=network.target
+
+[Service]
+WorkingDirectory=/home/rsc
+ExecStart=/usr/sbin/rsc
+Restart=always
+RestartSec=2500ms
+;User=rsc
+
+[Install]
+WantedBy=multi-user.target

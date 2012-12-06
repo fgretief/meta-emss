@@ -1,0 +1,6 @@
+# /etc/profile.d/rsc: package specific addition for the Bourne shell
+
+# Add sbin to PATH variable for rsc user
+if [ "$HOME" = "/home/rsc" ]; then
+    PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
+fi
