@@ -1,7 +1,7 @@
 LICENSE="MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 
-PR = "r4"
+PR = "r5"
 
 CONMANPKGS = ""
 
@@ -23,6 +23,10 @@ IMAGE_INSTALL += " \
     mtd-utils \
     gdbserver \
     kernel-modules \
+    connman \
+    connman-systemd \
+    connman-plugin-loopback \
+    connman-plugin-ethernet \
 "
 
 export IMAGE_BASENAME="rootfs-image"
