@@ -1,0 +1,12 @@
+Add missing aquire_sensors.c file to Makefile.
+
+--- a/Makefile.orig	2013-02-18 09:20:08.000000000 +0200
++++ b/Makefile	2013-02-18 09:25:41.302286179 +0200
+@@ -8,6 +8,7 @@
+     src/sampler_thread.c \
+     src/keyboard_intercept.c \
+     src/cmu_protocol_thread.c \
++    src/aquire_sensors.c \
+     src/qm/RCMU_SM.c \
+     src/qm/SM_main.c \
+     src/qm/bsp.c
