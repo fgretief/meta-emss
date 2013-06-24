@@ -1,0 +1,18 @@
+[Unit]
+Description=EMSS data file system creation
+DefaultDependencies=no
+Wants=systemd-modules-load.service
+After=systemd-modules-load.service
+After=dev-mmcblk0.device
+Before=media-card.mount
+
+## Under these condititions, the data file system has not been created yet
+ConditionPathExists=/dev/mmcblk0
+ConditionPathExists=!/dev/mmcblk0p1
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /usr/sbin/emss-create-datafs.sh
+
+[Install]
+WantedBy=local-fs.target

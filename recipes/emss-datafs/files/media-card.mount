@@ -1,0 +1,10 @@
+[Unit]
+Description=SDCard data file system
+
+[Mount]
+What=/dev/mmcblk0p1
+Where=/media/card
+Type=vfat
+
+[Install]
+WantedBy=local-fs.target
