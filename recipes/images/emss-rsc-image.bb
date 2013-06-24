@@ -13,6 +13,7 @@ IMAGE_LINGUAS = ""
 IMAGE_INSTALL += " \
     emss-rsc \
     emss-rsc-systemd \
+    emss-datafs \
     katcp \
     ntpdate \
     ntp \
@@ -23,6 +24,7 @@ IMAGE_INSTALL += " \
     mtd-utils \
     gdbserver \
     kernel-modules \
+    dosfstools \
     connman \
     connman-systemd \
     connman-plugin-loopback \
@@ -30,3 +32,14 @@ IMAGE_INSTALL += " \
 "
 
 export IMAGE_BASENAME="rootfs-image"
+
+do_extra_actions() {
+    ## Create file to silence pam_env warning.
+    install -m 0755 -d ${IMAGE_ROOTFS}${sysconfdir}/default
+    touch ${IMAGE_ROOTFS}${sysconfdir}/default/locale
+    ## Change default.target to multi-user.target because we don't
+    ## have a graphical environment.
+    ln -f -s multi-user.target '${IMAGE_ROOTFS}${systemd_unitdir}/system/default.target'
+}
+
+ROOTFS_POSTPROCESS_COMMAND += "do_extra_actions ; "
