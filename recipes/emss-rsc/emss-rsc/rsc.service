@@ -1,6 +1,7 @@
 [Unit]
 Description=EMSS Remote System Controller (RSC) service
 After=network.target
+RequiresMountsFor=/media/card
 
 [Service]
 WorkingDirectory=/home/rsc

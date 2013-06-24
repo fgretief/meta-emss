@@ -1,0 +1,11 @@
+--- a/src/main.c
++++ b/src/main.c
+@@ -124,7 +124,7 @@
+ 	switchOutputPin(0, PIN_A_31); // 0 == clear vac-pump ON pin
+ 	switchOutputPin(0, PIN_B_8); // 0 == clear vac-pump OFF pin
+ 	// try to mount SD card storage
+-	trySdCardMount();
++	//trySdCardMount();
+ 
+ 	/* allocate memory for all rsc_service thread structures */
+ 	for (i = 0; i < RX_THREADS; i++) {

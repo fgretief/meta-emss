@@ -1,0 +1,56 @@
+--- a/Makefile
++++ b/Makefile
+@@ -9,6 +9,8 @@
+     src/keyboard_intercept.c \
+     src/cmu_protocol_thread.c \
+     src/aquire_sensors.c \
++    src/xmodem.c \
++    src/minIni/minIni.c \
+     src/qm/RCMU_SM.c \
+     src/qm/SM_main.c \
+     src/qm/bsp.c
+@@ -16,13 +18,16 @@
+ 
+ TARGET ?= rcmu
+ 
++CFLAGS_KATCP += -DKATCP_USE_FLOATS
++CFLAGS_KATCP += -DKATCP_PROTOCOL_MAJOR_VERSION=5
++
+ all: $(TARGET)
+ 
+ $(TARGET): $(OBJS)
+ 	$(CC) $(LDFLAGS) $^ -o $@ -L qpc/ports/arm/linux/gnu/$(CONF) -lqf -lqep -lkatcp -lm -lpthread
+ 
+ .c.o:
+-	$(CC) $(CFLAGS) -c -Iinc -Iqpc/include -Iqpc/ports/arm/linux/gnu $< -o $@
++	$(CC) $(CFLAGS) $(CFLAGS_KATCP) -c -Iinc -Iqpc/include -Iqpc/ports/arm/linux/gnu $< -o $@
+ 
+ install: $(TARGET)
+ 	install -D -m 0755 $< $(PREFIX)/usr/sbin/$(TARGET)
+--- a/inc/aquire_sensors.h
++++ b/inc/aquire_sensors.h
+@@ -4,11 +4,11 @@
+  *      Author: charl
+  */
+ 
+-#include <string.h>
+-
+ #ifndef AQUIRE_SENSORS_H_
+ #define AQUIRE_SENSORS_H_
+ 
++#include <string.h>
++
+ void switchOutputPin(int cmd, int Out_Pin);
+ void cmu_request_init(struct queue_node *request, CmuCommands cmd);
+ struct queue_node * cmu_request_alloc(CmuCommands cmd);
+--- a/src/aquire_sensors.c
++++ b/src/aquire_sensors.c
+@@ -336,7 +336,7 @@
+  * file in strpath to RX. Then sets rx_detected = 0 and sampler mode back to
+  * normal. Returns (1) if upload successful.
+  */
+-int uploadRxFirmware(strpath) {
++int uploadRxFirmware(const char *strpath) {
+ 	struct queue_node request;
+ 	FILE *fp = fopen(strpath, "rb");
+ 
