@@ -22,5 +22,5 @@ SRC_URI_append_stamp9g20evb = " \
 "
 S = "${WORKDIR}/linux-${PV}"
 
-SRC_URI[md5sum] = "0bb97ed099986b46dc513c3178e891b3"
-SRC_URI[sha256sum] = "b9a9dd61c111d96e6899bcff80d9bf1568acd5165a04f134f9c01f237eed2287"
+SRC_URI[md5sum] = "c943f3a1c5d6d926646f60f2408d65c5"
+SRC_URI[sha256sum] = "17ba53298f7162ba9f1058b7798ad2fd3c086fb0e7cd7e0bcf02a69e26f71e21"
